@@ -13,7 +13,6 @@ import time
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-sleep(1)
 
 loginUrl = 'http://myns.cafe24.com/afterschool/regi/log/_login.php'
 pageUrl = 'http://myns.cafe24.com/afterschool/main/main/gate.php'
@@ -33,6 +32,24 @@ opener.addheaders = [
         ('User-Agent', user_agent),
         ]
 install_opener(opener)
+
+def pretty_print_POST(req):
+    prepared = req.prepare()
+    """
+    At this point it is completely built and ready
+    to be fired; it is "prepared".
+
+    However pay attention at the formatting used in 
+    this function because it is programmed to be pretty 
+    printed and may differ from the actual request.
+    """
+    print('{}\n{}\n{}\n\n{}'.format(
+        '-----------START-----------',
+        prepared.method + ' ' + prepared.url,
+        '\n'.join('{}: {}'.format(k, v) for k, v in prepared.headers.items()),
+        prepared.body,
+    ))
+
 
 def euc2utf(str):
         return unicode(str, 'euc-kr').encode('utf-8')
@@ -91,9 +108,13 @@ def joinClass(join_referer):
         joinReq = Request(joinUrl, join_data)
         joinReq.add_header('Referer', join_referer)
 
-        joinResp = urlopen(joinReq)
-        print '================================'
-        print joinResp.read()
+        test = False
+        if test:
+            pretty_print_POST(joinReq)
+        else:
+            joinResp = urlopen(joinReq)
+            print '================================'
+            print joinResp.read()
 
 
 
@@ -124,7 +145,6 @@ def getUrls():
         soup = BeautifulSoup(html, 'lxml', from_encoding='euc-kr')
         # 해당하는 tr 을 찾는다
         for link in getWantedClass(soup):
-                #print "link = " + str(link)
                 img = link.find('a',  href=re.compile(r'blog_join.php'))
                 #img = link.find('a',  href=re.compile(r'blog_main.php'))
                 if img != None:
