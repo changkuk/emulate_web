@@ -14,7 +14,6 @@ import time
 reload(sys)
 sys.setdefaultencoding('utf-8')
 sleep(1)
-sleep(1)
 
 loginUrl = 'http://myns.cafe24.com/afterschool/regi/log/_login.php'
 pageUrl = 'http://myns.cafe24.com/afterschool/main/main/gate.php'
