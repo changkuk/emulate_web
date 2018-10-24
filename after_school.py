@@ -1,30 +1,31 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from urllib2 import Request, build_opener, install_opener, HTTPCookieProcessor, HTTPHandler, urlopen
-import cookielib
-import urllib
+from urllib.request import build_opener, HTTPCookieProcessor, urlopen, HTTPHandler, install_opener, Request
+from urllib.parse import parse_qs, urlparse, urlencode
+from http.cookiejar import CookieJar
 from bs4 import BeautifulSoup
+from importlib import reload
 import sys
 import re
-import urlparse
 import threading
-import Queue
+from queue import Queue
 import time
 
 reload(sys)
-sys.setdefaultencoding('utf-8')
+#sys.setdefaultencoding('utf-8')
 
 loginUrl = 'http://myns.cafe24.com/afterschool/regi/log/_login.php'
 pageUrl = 'http://myns.cafe24.com/afterschool/main/main/gate.php'
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36'
-login_data = urllib.urlencode({'user_id' : '201710307', 'pass' : 'tkfkdgo1!', 'x' : '12', 'y' : '5', 'return_url' : '/afterschool/main/main/main.php'})
+login_data = urlencode({'user_id' : '201710307', 'pass' : 'tkfkdgo1!', 'x' : '12', 'y' : '5', 'return_url' : '/afterschool/main/main/main.php'})
 login_referer = 'http://myns.cafe24.com/afterschool/main/main/main.php'
 join_head_url = 'http://myns.cafe24.com/afterschool/main/main/'
-queue = Queue.Queue()
+queue = Queue()
+login_data = login_data.encode('UTF-8')
 
 
 # Create a CookieJar Object to hold the cookies
-cj = cookielib.CookieJar()
+cj = CookieJar()
 # Create an opener to open pages using the http protocol and to process cookies.
 opener = build_opener(HTTPCookieProcessor(cj), HTTPHandler())
 # Commonly set User-Agent
@@ -90,9 +91,11 @@ def getParameter(url):
 
 def getWantedClass(soup):
         links = []
-        links.append(soup.find(string=u'바이올린').find_parent('tr'))
-        links.append(soup.find(string=re.compile(ur'바둑 A반', re.UNICODE)).find_parent('tr'))
-        links.append(soup.find(string=re.compile(ur'장명숙 생명과학', re.UNICODE)).find_parent('tr'))
+        #links.append(soup.find(string=u'바이올린').find_parent('tr'))
+        #links.append(soup.find(string='바둑 A반').find_parent('tr'))
+        #links.append(soup.find(string=re.compile(ur'바둑 A반', re.UNICODE)).find_parent('tr'))
+        #links.append(soup.find(string=re.compile(ur'장명숙 생명과학', re.UNICODE)).find_parent('tr'))
+        links.append(soup.find(string='탁구').find_parent('tr'))
         return links
 
 def joinClass(join_referer):
@@ -103,7 +106,7 @@ def joinClass(join_referer):
         #return
         parsed = getParameter(join_referer)
 
-        join_data = urllib.urlencode({'club_no' : parsed['club_no'][0], 'div_no' : parsed['div_no'][0], 'member_no' : '11523', 'tque' : 'true'})
+        join_data = urlencode({'club_no' : parsed['club_no'][0], 'div_no' : parsed['div_no'][0], 'member_no' : '11523', 'tque' : 'true'})
 
         joinReq = Request(joinUrl, join_data)
         joinReq.add_header('Referer', join_referer)
@@ -113,8 +116,8 @@ def joinClass(join_referer):
             pretty_print_POST(joinReq)
         else:
             joinResp = urlopen(joinReq)
-            print '================================'
-            print joinResp.read()
+            print('================================')
+            print(joinResp.read())
 
 
 
@@ -129,7 +132,7 @@ class ThreadUrl(threading.Thread):
                         url = self.queue.get()
                         joinClass(url)
                         self.queue.task_done()
-                        print "url = " + url
+                        print("url = " + url)
 
 start = time.time()
 
@@ -138,9 +141,9 @@ def getUrls():
         #html = fileLogin()
         #html = woojooFileLogin()
         #print html
-        print '================================'
-        print 'login success'
-        print '================================'
+        print('================================')
+        print('login success')
+        print('================================')
 
         soup = BeautifulSoup(html, 'lxml', from_encoding='euc-kr')
         # 해당하는 tr 을 찾는다
@@ -163,4 +166,4 @@ def main():
 
 
 main()
-print "Elapsed Time: %s" % (time.time() - start)
+print("Elapsed Time: %s" % (time.time() - start))
